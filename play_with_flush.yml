@@ -1,0 +1,100 @@
+---
+- name: Configure and deploy Nginx with flush handler
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Install Docker
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull Nginx Docker image
+      community.docker.docker_image:
+        name: nginx
+        source: pull
+
+    - name: Create Nginx container
+      community.docker.docker_container:
+        name: nginx_with_handler
+        image: nginx
+        state: started
+        ports:
+          - "443:80"
+        volumes:
+          - /usr/share/nginx/html:/usr/share/nginx/html
+          - /etc/nginx/conf.d:/etc/nginx/conf.d
+
+    - name: Ensure /etc/nginx/conf.d directory exists
+      ansible.builtin.file:
+        path: /etc/nginx/conf.d
+        state: directory
+
+    - name: Create a new Nginx configuration
+      ansible.builtin.copy:
+        content: |
+          server {
+              listen       80;
+              server_name  localhost;
+
+              location / {
+                  root   /usr/share/nginx/html;
+                  index  index.html;
+              }
+
+              error_page   500 502 503 504  /50x.html;
+              location = /50x.html {
+                  root   /usr/share/nginx/html;
+              }
+          }
+        dest: /etc/nginx/conf.d/default.conf
+        mode: '0644'
+      notify: Restart Nginx
+
+    - name: Ensure index.html exists
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Welcome to My Website!</title>
+          </head>
+          <body>
+              <div style="text-align: center; padding: 50px;">
+                  <h1>Welcome to My Website with flush handler!</h1>
+                  <p>This page is served by Nginx.</p>
+                  <p>You can see this page on your browser by visiting <strong>http://localhost</strong>.</p>
+              </div>
+          </body>
+          </html>
+        dest: /usr/share/nginx/html/index.html
+        mode: '0644'
+      notify: Restart Nginx
+
+    - name: Flush handlers to apply new configuration immediately
+      ansible.builtin.meta: flush_handlers
+
+    - name: Pause for demonstration (with handler)
+      ansible.builtin.pause:
+        seconds: 15
+
+    - name: Verify the Nginx service is running
+      ansible.builtin.command: docker ps --filter "name=nginx_with_handler"
+      register: service_status
+      ignore_errors: true
+
+    - name: Print service status
+      ansible.builtin.debug:
+        msg: "Service status: {{ service_status.stdout }}"
+
+  handlers:
+    - name: Restart Nginx
+      command: sudo docker restart nginx_with_handler
