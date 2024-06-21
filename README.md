@@ -2,6 +2,10 @@
 
 This repository contains two Ansible playbooks for deploying and configuring Nginx inside Docker containers on a single Ubuntu server. The playbooks demonstrate the crucial difference and the benefit of using handlers with and without the `flush_handlers` directive.
 
+## Workflow
+
+**![](https://lh7-us.googleusercontent.com/docsz/AD_4nXdEyfaVBSkIVnbyIKXbbNBU5vdM7dlvtAvwlMJ6sOUAkkOhPulSz5is9KdUC3JhccR_LnKhntkicXT6mduVToqKXsl0TOVpaTF6wZyKcdx6YGv9-6S1QllGOT1fdVGuWq7aq_WlTAXLvrNVsI4IrbSm7wtU?key=L4XayPA1sB7Vrq7Z5fyZgg)**
+
 ## Playbooks
 
 1. **play_with_flush.yml**: This playbook configures and deploys Nginx and uses the `flush_handlers` directive to immediately apply changes and reload the Nginx configuration.
