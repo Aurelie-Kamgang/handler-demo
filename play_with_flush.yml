@@ -2,8 +2,11 @@
 - name: Configure and deploy Nginx with flush handler
   hosts: localhost
   become: true
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
+  pre_tasks:
+    - name: Ensure Ansible Galaxy collection community.docker is installed
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install community.docker
+      changed_when: false
   tasks:
     - name: Install Docker
       ansible.builtin.apt:
