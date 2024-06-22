@@ -1,4 +1,4 @@
-# Demonstration of Ansible Handlers with and without Flush Handlers in Nginx Docker Deployment
+# Demonstration of Ansible Handlers without and with flush_handlers in Nginx Docker Deployment
 
 This repository contains two Ansible playbooks for deploying and configuring Nginx inside Docker containers on a single Ubuntu server. The playbooks demonstrate the crucial difference and the benefit of using handlers with and without the `flush_handlers` directive.
 
