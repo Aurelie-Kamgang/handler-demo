@@ -6,7 +6,8 @@
     - name: Ensure Ansible Galaxy collection community.docker is installed
       ansible.builtin.command:
         cmd: ansible-galaxy collection install community.docker
-      changed_when: false
+      tags:
+        - always
   tasks:
     - name: Install Docker
       ansible.builtin.apt:
