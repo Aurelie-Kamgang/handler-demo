@@ -28,6 +28,10 @@ This repository contains two Ansible playbooks for deploying and configuring Ngi
 
 ## Running the Playbooks
 
+Before install collection commuity of docker with command:
+
+``ansible-galaxy collection install community.docker``
+
 ### play_with_flush.yml
 
 This playbook installs Docker, pulls the Nginx image, creates a container, and sets up a custom Nginx configuration. It uses the `flush_handlers` directive to immediately apply the changes.
