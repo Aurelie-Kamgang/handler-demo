@@ -31,9 +31,9 @@
         image: nginx
         state: started
         ports:
-          - "80:80"
+          - "443:80"
         volumes:
-          - "nginx-data:/usr/share/nginx/html:ro"
+          - "/usr/share/nginx/html:/usr/share/nginx/html"
           - "/etc/nginx/conf.d:/etc/nginx/conf.d"
 
     - name: Create a new Nginx configuration
