@@ -20,8 +20,8 @@ This repository contains two Ansible playbooks for deploying and configuring Ngi
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/nginx-docker-ansible.git
-    cd nginx-docker-ansible
+    git clone https://github.com/Aurelie-Kamgang/handler-demo.git
+    cd handler-demo
     ```
 
 2. Ensure that the server has the necessary permissions and is accessible via SSH.
