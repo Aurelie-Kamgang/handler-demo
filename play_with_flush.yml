@@ -20,21 +20,20 @@
         name: nginx
         source: pull
 
+    - name: Create volume
+      community.docker.docker_volume:
+        name: nginx-data
+        driver: local
+
     - name: Create Nginx container
       community.docker.docker_container:
         name: nginx_with_handler
         image: nginx
         state: started
         ports:
-          - "443:80"
+          - "80:80"
         volumes:
-          - /usr/share/nginx/html:/usr/share/nginx/html
-          - /etc/nginx/conf.d:/etc/nginx/conf.d
-
-    - name: Ensure /etc/nginx/conf.d directory exists
-      ansible.builtin.file:
-        path: /etc/nginx/conf.d
-        state: directory
+          - "nginx-data:/usr/share/nginx/html:ro"
 
     - name: Create a new Nginx configuration
       ansible.builtin.copy:
