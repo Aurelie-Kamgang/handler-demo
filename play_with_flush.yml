@@ -97,4 +97,4 @@
 
   handlers:
     - name: Restart Nginx
-      command: sudo docker restart nginx_with_handler
+      command: docker restart nginx_with_handler
