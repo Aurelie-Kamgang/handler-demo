@@ -30,16 +30,68 @@
         volumes:
           - /usr/share/nginx/html:/usr/share/nginx/html
           - /etc/nginx/conf.d:/etc/nginx/conf.d
+          
+    - name: Ensure /etc/nginx/conf.d directory exists
+      ansible.builtin.file:
+        path: /etc/nginx/conf.d
+        state: directory
 
-    - name: Backup default Nginx configuration
-      ansible.builtin.command:
-        cmd: docker exec nginx_with_handler cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
-      ignore_errors: yes
+    - name: Ensure /usr/share/nginx/html directory exists
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: directory
+        
+    - name: Ensure default Nginx configuration file exists
+      ansible.builtin.copy:
+        content: |
+          server {
+              listen       80;
+              server_name  localhost;
 
-    - name: Backup default index.html
-      ansible.builtin.command:
-        cmd: docker exec nginx_with_handler cp /usr/share/nginx/html/index.html /usr/share/nginx/html/index.html
-      ignore_errors: yes
+              location / {
+                  root   /usr/share/nginx/html;
+                  index  index.html;
+              }
+
+              error_page   500 502 503 504  /50x.html;
+              location = /50x.html {
+                  root   /usr/share/nginx/html;
+              }
+          }
+        dest: /etc/nginx/conf.d/default.conf
+        mode: '0644'
+      notify: Copy default Nginx configuration into the container
+
+    - name: Ensure default index.html file exists
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Welcome to nginx!</title>
+              <style>
+                  body {
+                      width: 35em;
+                      margin: 0 auto;
+                      font-family: Tahoma, Verdana, Arial, sans-serif;
+                  }
+              </style>
+          </head>
+          <body>
+              <h1>Welcome to nginx!</h1>
+              <p>If you see this page, the nginx web server is successfully installed and working. Further configuration is required.</p>
+
+              <p>For online documentation and support please refer to
+              <a href="http://nginx.org/">nginx.org</a>.<br/>
+              Commercial support is available at
+              <a href="http://nginx.com/">nginx.com</a>.</p>
+
+              <p><em>Thank you for using nginx.</em></p>
+          </body>
+          </html>
+        dest: /usr/share/nginx/html/index.html
+        mode: '0644'
+      notify: Copy default index.html into the container
 
     - name: Create a new Nginx configuration
       ansible.builtin.copy:
