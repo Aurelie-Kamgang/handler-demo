@@ -34,6 +34,7 @@
           - "80:80"
         volumes:
           - "nginx-data:/usr/share/nginx/html:ro"
+          - "/etc/nginx/conf.d:/etc/nginx/conf.d"
 
     - name: Create a new Nginx configuration
       ansible.builtin.copy:
