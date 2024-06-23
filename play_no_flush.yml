@@ -36,6 +36,11 @@
         path: /etc/nginx/conf.d
         state: directory
 
+    - name: Ensure /usr/share/nginx/html directory exists on host
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: directory
+
     # - name: Create a new Nginx configuration
     #   ansible.builtin.copy:
     #     content: |
