@@ -27,16 +27,17 @@
 
     - name: Create Nginx container
       community.docker.docker_container:
-        name: nginx_without_flush
+        name: nginx_with_handler
         image: nginx
         state: started
         ports:
           - "80:80"
         volumes:
-          - "nginx-data:/usr/share/nginx/html:ro"
+          - /usr/share/nginx/html:/usr/share/nginx/html
+          - /etc/nginx/conf.d:/etc/nginx/conf.d
 
-    - name: Create a new Nginx configuration file locally
-      ansible.builtin.copy:
+    - name: Create a new Nginx configuration
+      copy:
         content: |
           server {
               listen       80;
@@ -52,11 +53,12 @@
                   root   /usr/share/nginx/html;
               }
           }
-        dest: /tmp/default.conf
+        dest: /etc/nginx/conf.d/default.conf
         mode: '0644'
+      notify: Restart Nginx
 
-    - name: Create a new index.html file locally
-      ansible.builtin.copy:
+    - name: modify index.html
+      copy:
         content: |
           <!DOCTYPE html>
           <html lang="en">
@@ -67,27 +69,14 @@
           </head>
           <body>
               <div style="text-align: center; padding: 50px;">
-                  <h1>Welcome to My Website with enforced restart!</h1>
+                  <h1>Welcome to My Website!</h1>
                   <p>This page is served by Nginx.</p>
                   <p>You can see this page on your browser by visiting <strong>http://localhost</strong>.</p>
               </div>
           </body>
           </html>
-        dest: /tmp/index.html
-        mode: '0644'
-
-    - name: Copy the new Nginx configuration into the container
-      community.docker.docker_cp:
-        src: /tmp/default.conf
-        dest: /etc/nginx/conf.d/default.conf
-        container: nginx_without_flush
-      notify: Restart Nginx
-
-    - name: Copy the new index.html into the container
-      community.docker.docker_cp:
-        src: /tmp/index.html
         dest: /usr/share/nginx/html/index.html
-        container: nginx_without_flush
+        mode: '0644'
       notify: Restart Nginx
 
     - name: Pause for demonstration
