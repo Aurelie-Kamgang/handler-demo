@@ -36,61 +36,61 @@
         path: /etc/nginx/conf.d
         state: directory
 
-    - name: Create a new Nginx configuration
-      ansible.builtin.copy:
-        content: |
-          server {
-              listen       80;
-              server_name  localhost;
+    # - name: Create a new Nginx configuration
+    #   ansible.builtin.copy:
+    #     content: |
+    #       server {
+    #           listen       80;
+    #           server_name  localhost;
 
-              location / {
-                  root   /usr/share/nginx/html;
-                  index  index.html;
-              }
+    #           location / {
+    #               root   /usr/share/nginx/html;
+    #               index  index.html;
+    #           }
 
-              error_page   500 502 503 504  /50x.html;
-              location = /50x.html {
-                  root   /usr/share/nginx/html;
-              }
-          }
-        dest: /etc/nginx/conf.d/default.conf
-        mode: '0644'
-      notify: Restart Nginx
+    #           error_page   500 502 503 504  /50x.html;
+    #           location = /50x.html {
+    #               root   /usr/share/nginx/html;
+    #           }
+    #       }
+    #     dest: /etc/nginx/conf.d/default.conf
+    #     mode: '0644'
+    #   notify: Restart Nginx
 
-    - name: Ensure index.html exists
-      ansible.builtin.copy:
-        content: |
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Welcome to My Website!</title>
-          </head>
-          <body>
-              <div style="text-align: center; padding: 50px;">
-                  <h1>Welcome to My Website without flush handler!</h1>
-                  <p>This page is served by Nginx.</p>
-                  <p>You can see this page on your browser by visiting <strong>http://localhost</strong>.</p>
-              </div>
-          </body>
-          </html>
-        dest: /usr/share/nginx/html/index.html
-        mode: '0644'
-      notify: Restart Nginx
+    # - name: Ensure index.html exists
+    #   ansible.builtin.copy:
+    #     content: |
+    #       <!DOCTYPE html>
+    #       <html lang="en">
+    #       <head>
+    #           <meta charset="UTF-8">
+    #           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    #           <title>Welcome to My Website!</title>
+    #       </head>
+    #       <body>
+    #           <div style="text-align: center; padding: 50px;">
+    #               <h1>Welcome to My Website without flush handler!</h1>
+    #               <p>This page is served by Nginx.</p>
+    #               <p>You can see this page on your browser by visiting <strong>http://localhost</strong>.</p>
+    #           </div>
+    #       </body>
+    #       </html>
+    #     dest: /usr/share/nginx/html/index.html
+    #     mode: '0644'
+    #   notify: Restart Nginx
 
-    - name: Pause for demonstration (without handler)
-      ansible.builtin.pause:
-        seconds: 15
+    # - name: Pause for demonstration (without handler)
+    #   ansible.builtin.pause:
+    #     seconds: 15
 
-    - name: Verify the Nginx service is running
-      ansible.builtin.command: docker ps --filter "name=nginx_without_handler"
-      register: service_status
-      ignore_errors: true
+    # - name: Verify the Nginx service is running
+    #   ansible.builtin.command: docker ps --filter "name=nginx_without_handler"
+    #   register: service_status
+    #   ignore_errors: true
 
-    - name: Print service status
-      ansible.builtin.debug:
-        msg: "Service status: {{ service_status.stdout }}"
+    # - name: Print service status
+    #   ansible.builtin.debug:
+    #     msg: "Service status: {{ service_status.stdout }}"
 
   handlers:
     - name: Restart Nginx
