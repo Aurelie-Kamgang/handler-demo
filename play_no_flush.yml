@@ -27,11 +27,21 @@
         state: started
         ports:
           - "80:80"
-        volumes:
-          - /usr/share/nginx/html:/usr/share/nginx/html
-          - /etc/nginx/conf.d:/etc/nginx/conf.d
+        #volumes:
+        #  - /usr/share/nginx/html:/usr/share/nginx/html
+        #  - /etc/nginx/conf.d:/etc/nginx/conf.d
           
-    - name: Create a new Nginx configuration
+    - name: Ensure /etc/nginx/conf.d directory exists on host
+      ansible.builtin.file:
+        path: /etc/nginx/conf.d
+        state: directory
+
+    - name: Ensure /usr/share/nginx/html directory exists on host
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: directory
+
+    - name: Create a new Nginx configuration on host
       ansible.builtin.copy:
         content: |
           server {
@@ -40,7 +50,7 @@
 
               location / {
                   root   /usr/share/nginx/html;
-                  index  index.html;
+                  index  init.html;
               }
 
               error_page   500 502 503 504  /50x.html;
@@ -48,11 +58,10 @@
                   root   /usr/share/nginx/html;
               }
           }
-        dest: /etc/nginx/conf.d/default.conf
+        dest: /etc/nginx/conf.d/init.conf
         mode: '0644'
-      notify: Restart Nginx
 
-    - name: Modify index.html
+    - name: Ensure index.html exists on host
       ansible.builtin.copy:
         content: |
           <!DOCTYPE html>
@@ -70,8 +79,32 @@
               </div>
           </body>
           </html>
-        dest: /usr/share/nginx/html/index.html
+        dest: /usr/share/nginx/html/init.html
         mode: '0644'
+        
+    - name: Create Nginx container with custom configuration
+      community.docker.docker_container:
+        name: nginx_custom
+        image: nginx
+        state: started
+        ports:
+          - "80:80"
+        # Removed volume mounts, instead will copy files into container
+
+    - name: Copy new Nginx configuration into the container
+      community.docker.docker_copy:
+        container: nginx_custom
+        src: /etc/nginx/conf.d/init.conf
+        dest: /etc/nginx/conf.d/default.conf
+        direction: to
+      notify: Restart Nginx
+
+    - name: Copy new index.html into the container
+      community.docker.docker_copy:
+        container: nginx_custom
+        src: /usr/share/nginx/html/init.html
+        dest: /usr/share/nginx/html/index.html
+        direction: to
       notify: Restart Nginx
 
     - name: Pause for demonstration
