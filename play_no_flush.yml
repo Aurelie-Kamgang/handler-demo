@@ -1,47 +1,25 @@
 ---
-- name: Configure and deploy Nginx with enforced restart
+- name: Configure and deploy Nginx without Docker
   hosts: localhost
   become: true
   tasks:
-    - name: Install Docker
+    - name: Update apt and install Nginx
       ansible.builtin.apt:
-        name: docker.io
+        name: nginx
         state: present
         update_cache: yes
 
-    - name: Start Docker service
-      ansible.builtin.service:
-        name: docker
-        state: started
-        enabled: yes
-
-    - name: Pull Nginx Docker image
-      community.docker.docker_image:
-        name: nginx
-        source: pull
-        
-    - name: Create Nginx container
-      community.docker.docker_container:
-        name: nginx_without_handler
-        image: nginx
-        state: started
-        ports:
-          - "80:80"
-        #volumes:
-        #  - /usr/share/nginx/html:/usr/share/nginx/html
-        #  - /etc/nginx/conf.d:/etc/nginx/conf.d
-          
-    - name: Ensure /etc/nginx/conf.d directory exists on host
+    - name: Ensure /etc/nginx/sites-available directory exists
       ansible.builtin.file:
-        path: /etc/nginx/conf.d
+        path: /etc/nginx/sites-available
         state: directory
 
-    - name: Ensure /usr/share/nginx/html directory exists on host
+    - name: Ensure /etc/nginx/sites-enabled directory exists
       ansible.builtin.file:
-        path: /usr/share/nginx/html
+        path: /etc/nginx/sites-enabled
         state: directory
 
-    - name: Create a new Nginx configuration on host
+    - name: Create a new Nginx configuration
       ansible.builtin.copy:
         content: |
           server {
@@ -50,7 +28,7 @@
 
               location / {
                   root   /usr/share/nginx/html;
-                  index  init.html;
+                  index  index.html;
               }
 
               error_page   500 502 503 504  /50x.html;
@@ -58,10 +36,18 @@
                   root   /usr/share/nginx/html;
               }
           }
-        dest: /etc/nginx/conf.d/init.conf
+        dest: /etc/nginx/sites-available/default
         mode: '0644'
+      notify: Restart Nginx
 
-    - name: Ensure index.html exists on host
+    - name: Ensure the Nginx configuration is enabled
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/default
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+      notify: Restart Nginx
+
+    - name: Ensure index.html exists
       ansible.builtin.copy:
         content: |
           <!DOCTYPE html>
@@ -79,17 +65,8 @@
               </div>
           </body>
           </html>
-        dest: /usr/share/nginx/html/init.html
+        dest: /usr/share/nginx/html/index.html
         mode: '0644'
-        
-    - name: Copy new Nginx configuration into the container using docker cp
-      ansible.builtin.command:
-        cmd: "docker cp /etc/nginx/conf.d/init.conf nginx_without_handler:/etc/nginx/conf.d/default.conf"
-      notify: Restart Nginx
-
-    - name: Copy new index.html into the container using docker cp
-      ansible.builtin.command:
-        cmd: "docker cp /usr/share/nginx/html/init.html nginx_without_handler:/usr/share/nginx/html/index.html"
       notify: Restart Nginx
 
     - name: Pause for demonstration
@@ -97,15 +74,18 @@
         seconds: 15
 
     - name: Verify the Nginx service is running
-      ansible.builtin.command: docker ps --filter "name=nginx_without_handler"
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
       register: service_status
       ignore_errors: true
 
     - name: Print service status
       ansible.builtin.debug:
-        msg: "Service status: {{ service_status.stdout }}"
+        msg: "Service status: {{ service_status.status }}"
 
   handlers:
     - name: Restart Nginx
-      ansible.builtin.command:
-        cmd: docker restart nginx_without_handler
+      ansible.builtin.systemd:
+        name: nginx
+        state: restarted
